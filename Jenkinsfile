@@ -1,31 +1,36 @@
 pipeline {
     agent any
+
+    environment {
+        // Define any environment variables here
+        GIT_REPO = 'https://github.com/Balireddy111/java_webapplication.git/'
+        MAVEN_HOME = tool name: 'Maven', type: 'hudson.tasks.Maven$MavenInstallation'
+    }
+
     stages {
-        stage('Build Application') {
+        stage('Clone Repository') {
             steps {
-                sh 'mvn -f pom.xml clean package'
+                // Clone the repository
+                git url: "${GIT_REPO}", branch: 'main'
             }
-            post {
-                success {
-                    echo "Now Archiving the Artifacts...."
-                    archiveArtifacts artifacts: '**/*.war'
+        }
+
+        stage('Build with Maven') {
+            steps {
+                // Build the project using Maven
+                withMaven(maven: "${MAVEN_HOME}") {
+                    sh 'mvn clean package'
                 }
             }
         }
-        stage('Deploy in Staging Environment'){
-            steps{
-                build job: 'Deployment_Application_Staging_Env'
- 
-            }
-            
+    }
+
+    post {
+        success {
+            echo 'Build completed successfully!'
         }
-        stage('Deploy to Production'){
-            steps{
-                timeout(time:5, unit:'DAYS'){
-                    input message:'Approve PRODUCTION Deployment?'
-                }
-                build job: 'Deployment_Application_Prod_Env'
-            }
+        failure {
+            echo 'Build failed!'
         }
     }
 }
