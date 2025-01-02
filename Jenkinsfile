@@ -21,9 +21,16 @@ pipeline {
             }
         }
 
+        stage('Move WAR File') {
+            steps {
+                sh 'mkdir -p /var/jenkins_home/war_file'
+                sh 'mv target/*.war /var/jenkins_home/war_file/'
+            }
+        }
+
         stage('Archive WAR') {
             steps {
-                archiveArtifacts artifacts: 'target/*.war', allowEmptyArchive: true
+                archiveArtifacts artifacts: '/var/jenkins_home/war_file/*.war', allowEmptyArchive: true
             }
         }
     }
